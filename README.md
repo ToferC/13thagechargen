@@ -5,6 +5,7 @@ This is a learning project that I do with most languages to start figuring out t
 Stuff that I usually figure out in the project:
 * JSON string manipulation
 * Save / Load files
+* OS / File manipulation
 * Random number generation
 * CLI commands and queries
 * String manipulation
@@ -14,8 +15,9 @@ Stuff that I usually figure out in the project:
 * Probably more, but it's late.
 
 Next steps:
--[] Web App serving
--[] Database - Postgres connection
--[] Graphql + Go + React
--[] More CLI
--[] GUIs
+- Web App serving
+- Database - Postgres connection
+- Graphql + Go + React
+- More CLI
+- GUIs
+- Docker as dev environment
