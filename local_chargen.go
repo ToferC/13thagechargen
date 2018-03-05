@@ -11,6 +11,7 @@ import (
   "strings"
   "log"
   "net/http"
+  "html/template"
   "path/filepath"
 )
 
@@ -106,8 +107,17 @@ func indexHandler(w http.ResponseWriter, r *http.Request) {
     log.Fatal(err)
   }
 
-  w.Header().Set("Content-Type", "text")
-  fmt.Fprintf(w, "<h4>%</h4>", files)
+  var charNames []string
+
+  for _, path := range files {
+    _, json := filepath.Split(path)
+    s := strings.Split(json, ".")
+    charNames = append(charNames, s[0])
+  }
+
+  t, _ := template.ParseFiles("index.html")
+  t.Execute(w, charNames)
+
 }
 
 func viewHandler(w http.ResponseWriter, r *http.Request) {
@@ -128,6 +138,28 @@ func viewHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 func main() {
+  // New character?
+  createReader := bufio.NewReader(os.Stdin)
+  fmt.Print("Create a new character (Y/N): ")
+  createCharacter, _ := createReader.ReadString('\n')
+
+  createOrNot := strings.Trim(createCharacter, " \n")
+
+  if createOrNot == "Y" {
+      createChar()
+  } else {
+    fmt.Println("No character created.")
+  }
+
+  fmt.Println("Starting Web server at port 8080")
+  http.HandleFunc("/", indexHandler)
+  http.HandleFunc("/view/", viewHandler)
+
+  log.Fatal(http.ListenAndServe(":8080", nil))
+}
+
+
+func createChar() {
   // Get user input
   reader := bufio.NewReader(os.Stdin)
   fmt.Print("Enter character name: ")
@@ -167,11 +199,6 @@ func main() {
   d := openCharacter(path)
 
   printCharacter(d)
-
-  http.HandleFunc("/view/", viewHandler)
-  http.HandleFunc("/", indexHandler)
-
-  log.Fatal(http.ListenAndServe(":8080", nil))
 }
 
 func writeFile(path string, c Character) {
