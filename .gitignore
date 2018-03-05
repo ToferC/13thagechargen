@@ -32,5 +32,6 @@ Session.vim
 tags
 
 *.exe
+*.json
 
 cobra.test

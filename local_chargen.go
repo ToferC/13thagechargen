@@ -9,6 +9,9 @@ import (
   "io/ioutil"
   "bufio"
   "strings"
+  "log"
+  "net/http"
+  "path/filepath"
 )
 
 // Character Object
@@ -95,10 +98,37 @@ func checkError(err error) {
   }
 }
 
+// View and Edit Handlers
+func indexHandler(w http.ResponseWriter, r *http.Request) {
+
+  files, err := filepath.Glob("./characters/*")
+  if err != nil {
+    log.Fatal(err)
+  }
+
+  w.Header().Set("Content-Type", "text")
+  fmt.Fprintf(w, "<h4>%</h4>", files)
+}
+
+func viewHandler(w http.ResponseWriter, r *http.Request) {
+
+  name := r.URL.Path[len("/view/"):]
+
+  path := "./characters/"+name+".json"
+  c := openCharacter(path)
+
+  json, err := json.Marshal(c)
+  if err != nil {
+    http.Error(w, err.Error(), http.StatusInternalServerError)
+    return
+  }
+
+  w.Header().Set("Content-Type", "application/json")
+  w.Write(json)
+}
+
 func main() {
-
   // Get user input
-
   reader := bufio.NewReader(os.Stdin)
   fmt.Print("Enter character name: ")
   text, _ := reader.ReadString('\n')
@@ -138,7 +168,10 @@ func main() {
 
   printCharacter(d)
 
+  http.HandleFunc("/view/", viewHandler)
+  http.HandleFunc("/", indexHandler)
 
+  log.Fatal(http.ListenAndServe(":8080", nil))
 }
 
 func writeFile(path string, c Character) {
