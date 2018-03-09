@@ -115,7 +115,7 @@ func indexHandler(w http.ResponseWriter, r *http.Request) {
 		charNames = append(charNames, s[0])
 	}
 
-	t, _ := template.ParseFiles("index.html")
+	t, _ := template.ParseFiles("templates/index.html")
 	t.Execute(w, charNames)
 
 }
@@ -127,7 +127,7 @@ func viewHandler(w http.ResponseWriter, r *http.Request) {
 	path := "./characters/" + name + ".json"
 	c := openCharacter(path)
 
-	t, _ := template.ParseFiles("character.html")
+	t, _ := template.ParseFiles("templates/character.html")
 	t.Execute(w, c)
 }
 
@@ -161,11 +161,10 @@ func newCharHandler(w http.ResponseWriter, r *http.Request) {
 	printCharacter(c)
 
 	path := "./characters/" + c.Name + ".json"
-
+	
 	writeFile(path, c)
-	c := openCharacter(path)
 
-	t, _ := template.ParseFiles("new_char.html")
+	t, _ := template.ParseFiles("templates/new_char.html")
 	t.Execute(w, c)
 }
 
