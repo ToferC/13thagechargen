@@ -35,13 +35,6 @@ func stringInSlice(a string, list []string) bool {
 
 func main() {
 
-	class := "barbarian"
-	path := "http://www.13thagesrd.com/classes/" + class
-	omit := []string{
-		"Gold Pieces", "Navigation", " Latest products in the Open Gaming Store"}
-
-	abilities := make(map[string]string)
-
 	// Initialize Colly Collector
 	c := colly.NewCollector(
 		colly.AllowedDomains("www.13thagesrd.com"),
@@ -59,24 +52,38 @@ func main() {
 		fmt.Println("Visited", r.Request.URL)
 	})
 
-	/* Scraping and traversing
-	c.OnHTML("a[href]", func(e *colly.HTMLElement) {
-		e.Request.Visit(e.Attr("href"))
-	}) */
+	// set URLs for scraping
+	class := "barbarian"
+	path := "http://www.13thagesrd.com/classes/" + class
 
+	// Scrape class abilities
+
+	// Omit non-relevant H4 nodes
+	omit := []string{
+		"Gold Pieces", "Navigation", " Latest products in the Open Gaming Store"}
+
+	abilities := make(map[string]string)
+
+	// Find h4 tags for abilities
 	c.OnHTML("h4", func(e *colly.HTMLElement) {
 		if stringInSlice(e.Text, omit) {
 		} else {
-			fmt.Println("Found Ability:", e.Text)
-			description := e.ChildText("p")
+
+			description := ""
+
+			goquerySelection := e.DOM
+
+			description += goquerySelection.NextUntilSelection(goquerySelection.Find("h4")).Text() + "\n"
+
 			abilities[e.Text] = description
 		}
 	})
 
-	/* Test scraping function - table
-	c.OnHTML("tr td", func(e *colly.HTMLElement) {
+	// Test scraping function - class abilities table
+	// Looking for span id = "Level_Progression" or table here
+	c.OnHTML("th", func(e *colly.HTMLElement) {
 		fmt.Println("table row", e.Text)
-	}) */
+	})
 
 	c.OnScraped(func(r *colly.Response) {
 		fmt.Println("Finished", r.Request.URL)
@@ -84,6 +91,6 @@ func main() {
 
 	c.Visit(path)
 
-	fmt.Println(abilities)
+	//fmt.Println(abilities)
 
 }
