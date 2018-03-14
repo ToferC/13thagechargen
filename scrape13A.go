@@ -37,6 +37,7 @@ func stringInSlice(a string, list []string) bool {
 	return false
 }
 
+// StringToLines - Convert HTML table strings into text lines
 func StringToLines(s string) []string {
 	var lines []string
 
@@ -52,25 +53,53 @@ func StringToLines(s string) []string {
 	return lines
 }
 
-func processTr(tr *goquery.Selection) {
-	fmt.Println("Processing table row")
-	tr.Find("td").Each(func(indexOfTd int, td *goquery.Selection) {
-		lines := StringToLines(td.Text())
-		for _, line := range lines {
-
-			//line = strings.TrimSpace(line)
-			fmt.Printf("%s\n", line)
-		}
-	})
-}
-
 func processTable(tableObject *goquery.Selection) {
 	fmt.Println("Processing table")
+
+	// map of level(int) x column(string) x value(string)
+	classMap := make(map[int]map[string]string)
+
 	tableObject.Each(func(i int, table *goquery.Selection) {
-		table.Find("tr").Each(func(_ int, tr *goquery.Selection) {
-			processTr(tr)
+
+		table.Find("tr").Each(func(rowIndex int, tr *goquery.Selection) {
+
+			classMap[rowIndex] = map[string]string{}
+			classMap[rowIndex]["Level"] = ""
+			classMap[rowIndex]["HP"] = ""
+			classMap[rowIndex]["Feats"] = ""
+			classMap[rowIndex]["Talents"] = ""
+			classMap[rowIndex]["BLANK"] = ""
+			classMap[rowIndex]["AbilityMod"] = ""
+
+			tr.Find("td").Each(func(indexOfTd int, td *goquery.Selection) {
+				lines := StringToLines(td.Text())
+				for elementIndex, line := range lines {
+
+					switch elementIndex {
+					case 0:
+						classMap[rowIndex]["Level"] = line
+					case 1:
+						classMap[rowIndex]["HP"] = line
+					case 2:
+						classMap[rowIndex]["Feats"] = line
+					case 3:
+						classMap[rowIndex]["Talents"] = line
+					case 4:
+						classMap[rowIndex]["BLANK"] = line
+					case 5:
+						classMap[rowIndex]["AbilityMod"] = line
+					default:
+						fmt.Println("Not quite working yet")
+					}
+
+					//line = strings.TrimSpace(line)
+					fmt.Printf("%s\n", line)
+
+				}
+			})
 		})
 	})
+	fmt.Println(classMap)
 }
 
 func GetAbilities(class string) map[string]string {
