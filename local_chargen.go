@@ -151,6 +151,8 @@ func newCharHandler(w http.ResponseWriter, r *http.Request) {
 	c.Class = "Fighter"
 	c.Race = "Elf"
 
+	GetAbilities(c.Class)
+
 	conMod := 0
 
 	// Figure out stat mod
@@ -161,7 +163,7 @@ func newCharHandler(w http.ResponseWriter, r *http.Request) {
 	printCharacter(c)
 
 	path := "./characters/" + c.Name + ".json"
-	
+
 	writeFile(path, c)
 
 	t, _ := template.ParseFiles("templates/new_char.html")

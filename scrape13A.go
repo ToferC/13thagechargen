@@ -1,9 +1,13 @@
 package main
 
 import (
+	"bufio"
 	"fmt"
 	"log"
+	"os"
+	"strings"
 
+	"github.com/PuerkitoBio/goquery"
 	"github.com/gocolly/colly"
 )
 
@@ -33,7 +37,43 @@ func stringInSlice(a string, list []string) bool {
 	return false
 }
 
-func main() {
+func StringToLines(s string) []string {
+	var lines []string
+
+	scanner := bufio.NewScanner(strings.NewReader(s))
+	for scanner.Scan() {
+		lines = append(lines, scanner.Text())
+	}
+
+	if err := scanner.Err(); err != nil {
+		fmt.Fprintln(os.Stderr, "reading standard input:", err)
+	}
+
+	return lines
+}
+
+func processTr(tr *goquery.Selection) {
+	fmt.Println("Processing table row")
+	tr.Find("td").Each(func(indexOfTd int, td *goquery.Selection) {
+		lines := StringToLines(td.Text())
+		for _, line := range lines {
+
+			//line = strings.TrimSpace(line)
+			fmt.Printf("%s\n", line)
+		}
+	})
+}
+
+func processTable(tableObject *goquery.Selection) {
+	fmt.Println("Processing table")
+	tableObject.Each(func(i int, table *goquery.Selection) {
+		table.Find("tr").Each(func(_ int, tr *goquery.Selection) {
+			processTr(tr)
+		})
+	})
+}
+
+func GetAbilities(class string) map[string]string {
 
 	// Initialize Colly Collector
 	c := colly.NewCollector(
@@ -53,7 +93,7 @@ func main() {
 	})
 
 	// set URLs for scraping
-	class := "barbarian"
+
 	path := "http://www.13thagesrd.com/classes/" + class
 
 	// Scrape class abilities
@@ -66,6 +106,7 @@ func main() {
 
 	// Find h4 tags for abilities
 	c.OnHTML("h4", func(e *colly.HTMLElement) {
+
 		if stringInSlice(e.Text, omit) {
 		} else {
 
@@ -76,13 +117,24 @@ func main() {
 			description += goquerySelection.NextUntilSelection(goquerySelection.Find("h4")).Text() + "\n"
 
 			abilities[e.Text] = description
+
+			//fmt.Println(abilities)
 		}
 	})
 
 	// Test scraping function - class abilities table
-	// Looking for span id = "Level_Progression" or table here
-	c.OnHTML("th", func(e *colly.HTMLElement) {
-		fmt.Println("table row", e.Text)
+	c.OnHTML("body", func(e *colly.HTMLElement) {
+
+		//tableRows := make(map[int][]string)
+		goquerySelection := e.DOM
+
+		// Pull the class progression table
+		tableObject := goquerySelection.Find("table").Eq(3)
+
+		fmt.Println("Found Level Progression Table")
+
+		processTable(tableObject)
+
 	})
 
 	c.OnScraped(func(r *colly.Response) {
@@ -92,5 +144,7 @@ func main() {
 	c.Visit(path)
 
 	//fmt.Println(abilities)
+
+	return abilities
 
 }
