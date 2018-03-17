@@ -26,20 +26,20 @@ type Character struct {
 }
 
 // Roll dice
-func rollDie(max, min, numDice int) int {
+func RollDie(max, min, numDice int) int {
 
 	s1 := rand.NewSource(time.Now().UnixNano())
 	r1 := rand.New(s1)
 
 	result := 0
-	for i := 0; i < numDice+1; i++ {
+	for i := 1; i < numDice+1; i++ {
 		result += r1.Intn(max-min) + min
 	}
 	return result
 }
 
 // Determine stat modifiers
-func findMod(stat int) int {
+func FindMod(stat int) int {
 
 	mod := 0
 
@@ -73,10 +73,10 @@ func printCharacter(c Character) {
 	fmt.Println("***" + c.Name + "***")
 	fmt.Printf("Level %d %s %s \n", c.Level, c.Race, c.Class)
 	for key, value := range c.Stats {
-		fmt.Println(key, value, findMod(value))
+		fmt.Println(key, value, FindMod(value))
 	}
 
-	conMod := findMod(c.Stats["CON"])
+	conMod := FindMod(c.Stats["CON"])
 
 	fmt.Printf("ConMod: %d\n", conMod)
 	fmt.Printf("HP: %d \n\n", c.HP)
@@ -141,24 +141,24 @@ func newCharHandler(w http.ResponseWriter, r *http.Request) {
 	c := Character{Name: name, Stats: m, Class: "",
 		Level: 1, Race: "", HP: 0}
 
-	c.Stats["STR"] = rollDie(6, 1, 3)
-	c.Stats["DEX"] = rollDie(6, 1, 3)
-	c.Stats["CON"] = rollDie(6, 1, 3)
-	c.Stats["INT"] = rollDie(6, 1, 3)
-	c.Stats["WIS"] = rollDie(6, 1, 3)
-	c.Stats["CHA"] = rollDie(6, 1, 3)
+	c.Stats["STR"] = RollDie(6, 1, 3)
+	c.Stats["DEX"] = RollDie(6, 1, 3)
+	c.Stats["CON"] = RollDie(6, 1, 3)
+	c.Stats["INT"] = RollDie(6, 1, 3)
+	c.Stats["WIS"] = RollDie(6, 1, 3)
+	c.Stats["CHA"] = RollDie(6, 1, 3)
 
 	c.Class = "Fighter"
 	c.Race = "Elf"
 
 	GetAbilities(c.Class)
 
-	conMod := 0
+	var conMod int
 
 	// Figure out stat mod
-	conMod = findMod(c.Stats["CON"])
+	conMod = FindMod(c.Stats["CON"])
 
-	c.HP = rollDie(10, 1, 1) + conMod
+	c.HP = RollDie(10, 1, 1) + conMod
 
 	printCharacter(c)
 
@@ -214,12 +214,12 @@ func createChar() {
 	c := Character{Name: characterName, Stats: m, Class: "",
 		Level: 1, Race: "", HP: 0}
 
-	c.Stats["STR"] = rollDie(6, 1, 3)
-	c.Stats["DEX"] = rollDie(6, 1, 3)
-	c.Stats["CON"] = rollDie(6, 1, 3)
-	c.Stats["INT"] = rollDie(6, 1, 3)
-	c.Stats["WIS"] = rollDie(6, 1, 3)
-	c.Stats["CHA"] = rollDie(6, 1, 3)
+	c.Stats["STR"] = RollDie(6, 1, 3)
+	c.Stats["DEX"] = RollDie(6, 1, 3)
+	c.Stats["CON"] = RollDie(6, 1, 3)
+	c.Stats["INT"] = RollDie(6, 1, 3)
+	c.Stats["WIS"] = RollDie(6, 1, 3)
+	c.Stats["CHA"] = RollDie(6, 1, 3)
 
 	c.Class = "Fighter"
 	c.Race = "Elf"
@@ -227,9 +227,9 @@ func createChar() {
 	conMod := 0
 
 	// Figure out stat mod
-	conMod = findMod(c.Stats["CON"])
+	conMod = FindMod(c.Stats["CON"])
 
-	c.HP = rollDie(10, 1, 1) + conMod
+	c.HP = RollDie(10, 1, 1) + conMod
 
 	printCharacter(c)
 

@@ -63,14 +63,6 @@ func processTable(tableObject *goquery.Selection) {
 
 		table.Find("tr").Each(func(rowIndex int, tr *goquery.Selection) {
 
-			classMap[rowIndex] = map[string]string{}
-			classMap[rowIndex]["Level"] = ""
-			classMap[rowIndex]["HP"] = ""
-			classMap[rowIndex]["Feats"] = ""
-			classMap[rowIndex]["Talents"] = ""
-			classMap[rowIndex]["BLANK"] = ""
-			classMap[rowIndex]["AbilityMod"] = ""
-
 			tr.Find("td").Each(func(indexOfTd int, td *goquery.Selection) {
 				lines := StringToLines(td.Text())
 				for elementIndex, line := range lines {
