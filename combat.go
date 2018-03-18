@@ -96,6 +96,41 @@ func (c *Combatant) attack() {
 	}
 }
 
+func (b *Combat) report() {
+
+	factions := make(map[string]bool)
+
+	for _, fighter := range b.fighters {
+		factions[fighter.Faction] = true
+	}
+
+	starting := make(map[string]int)
+
+	for k, _ := range factions {
+		for _, fighter := range b.fighters {
+			if k == fighter.Faction {
+				starting[k] += 1
+			}
+		}
+	}
+
+	results := make(map[string]int)
+
+	for k, _ := range factions {
+		for _, fighter := range b.fighters {
+			if k == fighter.Faction && fighter.Down == false {
+				results[k] += 1
+			}
+		}
+	}
+	for k, v := range starting {
+		fmt.Println(k)
+		fmt.Printf("Starting Force: %d\n", v)
+		fmt.Printf("Standing: %d\n", results[k])
+		fmt.Printf("Losses: %.2f\n\n", 1-(float64(results[k])/float64(v)))
+	}
+}
+
 func main() {
 
 	fmt.Println("*** THE BATTLE BEGINS ***\n")
@@ -117,6 +152,31 @@ func main() {
 		WeaponDamage: 12, DamageBonus: 3, Initiative: 3, Speed: 0.8, Down: false}
 
 	battle := Combat{fighters: []*Combatant{&hugo, &blackthorn, &rutger}, active: true}
+
+	var faction string
+
+	for counter := 0; counter < 100; counter++ {
+
+		switch {
+		case counter < 50:
+			faction = "Bloodhawks"
+		default:
+			faction = "Templars"
+		}
+
+		battle.fighters = append(battle.fighters, &Combatant{
+			Name:         "fighter_" + faction + "_" + string(counter),
+			Faction:      faction,
+			HP:           5,
+			AC:           11,
+			AttackBonus:  1,
+			WeaponDamage: 6,
+			DamageBonus:  0,
+			Initiative:   0,
+			Speed:        1.5,
+			Down:         false,
+		})
+	}
 
 	// Main combat loop
 	for battle.active {
@@ -154,4 +214,5 @@ func main() {
 
 	}
 	fmt.Println("FIGHT OVER!")
+	battle.report()
 }
