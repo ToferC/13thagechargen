@@ -3,6 +3,7 @@ package main
 import (
 	"fmt"
 	"math/rand"
+	"sync"
 	"time"
 )
 
@@ -15,6 +16,7 @@ type Combatant struct {
 	WeaponDamage int
 	DamageBonus  int
 	Initiative   int
+	Speed        float64
 	Down         bool
 	Target       *Combatant
 }
@@ -33,6 +35,7 @@ func (c *Combatant) validate() {
 	}
 }
 
+// Roll and sum dice
 func RollDie(max, min, numDice int) int {
 
 	s1 := rand.NewSource(time.Now().UnixNano())
@@ -45,23 +48,33 @@ func RollDie(max, min, numDice int) int {
 	return result
 }
 
-func (c *Combatant) selectTarget(r *Combat) {
+// Insert combatants into qeue based on speed
+func initiative(c *Combatant, i chan *Combatant, wg *sync.WaitGroup) {
+	defer wg.Done()
+	time.Sleep(time.Duration(1000*c.Speed) * time.Millisecond)
+	i <- c
+}
+
+// Identify and select combat targets. End if no targets available
+func (c *Combatant) selectTarget(battle *Combat) {
 
 	s1 := rand.NewSource(time.Now().UnixNano())
 	r1 := rand.New(s1)
 
 	var potentialTargets []*Combatant
 
-	for _, f := range r.fighters {
+	for _, f := range battle.fighters {
 		if f != c && f.Down != true && c.Faction != f.Faction {
 			potentialTargets = append(potentialTargets, f)
 		}
 	}
 
+	// If no targets, end combat and declare winner, else assign target
 	if len(potentialTargets) == 0 {
 		fmt.Printf("The combat is over! The %s wins!\n", c.Faction)
-		r.active = false
+		battle.active = false
 	} else {
+		// Add decision matrix here
 		c.Target = potentialTargets[r1.Intn(len(potentialTargets))]
 		fmt.Printf("%s selects %s as their target.\n", c.Name, c.Target.Name)
 	}
@@ -85,37 +98,60 @@ func (c *Combatant) attack() {
 
 func main() {
 
+	fmt.Println("*** THE BATTLE BEGINS ***\n")
+
+	// Create initiative channel
+	i := make(chan *Combatant)
+
+	// Create WaitGroup
+	wg := new(sync.WaitGroup)
+
+	// Initialize combatants
 	hugo := Combatant{Name: "Hugo", Faction: "Bloodhawks", HP: 10, AC: 15, AttackBonus: 3,
-		WeaponDamage: 8, DamageBonus: 2, Initiative: 3, Down: false}
+		WeaponDamage: 8, DamageBonus: 2, Initiative: 3, Speed: 1.0, Down: false}
 
 	blackthorn := Combatant{Name: "BlackThorn", Faction: "Bloodhawks", HP: 10, AC: 15, AttackBonus: 3,
-		WeaponDamage: 8, DamageBonus: 2, Initiative: 3, Down: false}
+		WeaponDamage: 8, DamageBonus: 2, Initiative: 3, Speed: 1.4, Down: false}
 
 	rutger := Combatant{Name: "Rutger", Faction: "Templars", HP: 13, AC: 18, AttackBonus: 4,
-		WeaponDamage: 8, DamageBonus: 3, Initiative: 3, Down: false}
+		WeaponDamage: 12, DamageBonus: 3, Initiative: 3, Speed: 0.8, Down: false}
 
-	r := Combat{fighters: []*Combatant{&hugo, &blackthorn, &rutger}, active: true}
+	battle := Combat{fighters: []*Combatant{&hugo, &blackthorn, &rutger}, active: true}
 
-	//activeCombatants := r.fighters
+	// Main combat loop
+	for battle.active {
 
-	for r.active {
+		// Send fighters to initiative channel
+		for _, fighter := range battle.fighters {
+			wg.Add(1)
+			go initiative(fighter, i, wg)
+		}
 
-		for _, fighter := range r.fighters {
+		// Listen and wait for end of channel signals
+		go func() {
+			wg.Wait()
+			close(i)
+		}()
 
+		// Listen on initiative channel and take fighter actions
+		for fighter := range i {
 			if fighter.Down != true {
 
-				if r.active {
+				if battle.active {
 
-					fighter.selectTarget(&r)
+					fighter.selectTarget(&battle)
 				}
 
-				if r.active {
+				if battle.active {
 					fighter.attack()
 					fighter.Target.validate()
+					wg.Add(1)
+					go initiative(fighter, i, wg)
 				}
 
 			}
 		}
+
 	}
 	fmt.Println("FIGHT OVER!")
 }
