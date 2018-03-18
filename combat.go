@@ -26,12 +26,19 @@ type Combat struct {
 	active   bool
 }
 
+type timeStamp struct {
+	fighter *Combatant
+	stamp   time.Time
+}
+
 // Check to see if the target is out of the fight
-func (c *Combatant) validate() {
+func (c *Combatant) validate(tm *[]timeStamp) {
 
 	if c.HP <= 0 {
 		fmt.Printf("%s is struck down!\n", c.Name)
 		c.Down = true
+		ts := timeStamp{fighter: c, stamp: time.Now()}
+		*tm = append(*tm, ts)
 	}
 }
 
@@ -96,7 +103,7 @@ func (c *Combatant) attack() {
 	}
 }
 
-func (b *Combat) report() {
+func (b *Combat) report(timeTracker []timeStamp) {
 
 	factions := make(map[string]bool)
 
@@ -127,7 +134,11 @@ func (b *Combat) report() {
 		fmt.Println(k)
 		fmt.Printf("Starting Force: %d\n", v)
 		fmt.Printf("Standing: %d\n", results[k])
-		fmt.Printf("Losses: %.2f\n\n", 1-(float64(results[k])/float64(v)))
+		fmt.Printf("Losses: %.2f%%\n\n", (float64(results[k])/float64(v))*100)
+	}
+
+	for _, instance := range timeTracker {
+		fmt.Printf("%s is downed at %s\n", instance.fighter.Name, instance.stamp.Format("3:04PM"))
 	}
 }
 
@@ -140,6 +151,8 @@ func main() {
 
 	// Create WaitGroup
 	wg := new(sync.WaitGroup)
+
+	var timeTracker []timeStamp
 
 	// Initialize combatants
 	hugo := Combatant{Name: "Hugo", Faction: "Bloodhawks", HP: 10, AC: 15, AttackBonus: 3,
@@ -204,7 +217,7 @@ func main() {
 
 				if battle.active {
 					fighter.attack()
-					fighter.Target.validate()
+					fighter.Target.validate(&timeTracker)
 					wg.Add(1)
 					go initiative(fighter, i, wg)
 				}
@@ -213,6 +226,7 @@ func main() {
 		}
 
 	}
-	fmt.Println("FIGHT OVER!")
-	battle.report()
+	fmt.Println("FIGHT OVER!\n")
+	battle.report(timeTracker)
+
 }
