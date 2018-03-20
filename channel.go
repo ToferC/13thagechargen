@@ -13,6 +13,7 @@ func initiative (k string, v float64, i chan string, wg *sync.WaitGroup) {
 }
 
 func main() {
+  //
   wg := new(sync.WaitGroup)
   i := make(chan string)
 
@@ -23,11 +24,13 @@ func main() {
     go initiative(k, v, i, wg)
   }
 
+  // Listen and wait for end of channel signals
   go func() {
     wg.Wait()
     close(i)
   }()
 
+  // Listen at channel i, report on initiative and re-enter into queu
   for k := range i {
     fmt.Printf("%s acts!\n\n", k)
     v := combatants[k]

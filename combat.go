@@ -28,16 +28,22 @@ type Combat struct {
 
 type timeStamp struct {
 	fighter *Combatant
+	slayer  *Combatant
 	stamp   time.Time
 }
 
+type plotXY struct {
+	stampX time.Time
+	sumY   int
+}
+
 // Check to see if the target is out of the fight
-func (c *Combatant) validate(tm *[]timeStamp) {
+func (c *Combatant) validate(s *Combatant, tm *[]timeStamp) {
 
 	if c.HP <= 0 {
 		fmt.Printf("%s is struck down!\n", c.Name)
 		c.Down = true
-		ts := timeStamp{fighter: c, stamp: time.Now()}
+		ts := timeStamp{fighter: c, slayer: s, stamp: time.Now()}
 		*tm = append(*tm, ts)
 	}
 }
@@ -111,6 +117,7 @@ func (b *Combat) report(timeTracker []timeStamp) {
 		factions[fighter.Faction] = true
 	}
 
+	// Track starting combatants
 	starting := make(map[string]int)
 
 	for k, _ := range factions {
@@ -121,6 +128,7 @@ func (b *Combat) report(timeTracker []timeStamp) {
 		}
 	}
 
+	// Track combatants at end of battle
 	results := make(map[string]int)
 
 	for k, _ := range factions {
@@ -130,16 +138,50 @@ func (b *Combat) report(timeTracker []timeStamp) {
 			}
 		}
 	}
+
+	// Print out results
 	for k, v := range starting {
 		fmt.Println(k)
 		fmt.Printf("Starting Force: %d\n", v)
 		fmt.Printf("Standing: %d\n", results[k])
-		fmt.Printf("Losses: %.2f%%\n\n", (float64(results[k])/float64(v))*100)
+		fmt.Printf("Losses: %.2f%%\n\n", 100-(float64(results[k])/float64(v))*100)
 	}
 
 	for _, instance := range timeTracker {
-		fmt.Printf("%s is downed at %s\n", instance.fighter.Name, instance.stamp.Format("3:04PM"))
+		fmt.Printf("%s is slain by %s at %s\n", instance.fighter.Name,
+			instance.slayer.Name,
+			instance.stamp.Format("3:04PM"))
 	}
+
+	// develop MVP script
+
+	/* Transform timeTracker into plottable Format
+
+		plotData := convertTimeTracker(timeTracker, factions)
+
+		// plotting
+		p, err := plot.New()
+		if err != nil {
+			panic(err)
+		}
+
+		p.Title.Text = "Battle Results"
+		p.X.Label.Text = "Time"
+		p.Y.Label.Text = "Combatants"
+
+		err = plotutil.AddLinePoints(p)
+	}
+
+	func convertTimeTracker(t []timeStamp, f map[string]bool) map[string][]plotXY {
+
+		plotData := make(map[string][]plotXY)
+
+		for k, _ := range f {
+			plotData[k] := []plotXY
+			for _, s := range t {
+				plotData[k] = append(plotData[k], plotXY{faction: k, s.stamp)
+			}
+		} */
 }
 
 func main() {
@@ -217,7 +259,7 @@ func main() {
 
 				if battle.active {
 					fighter.attack()
-					fighter.Target.validate(&timeTracker)
+					fighter.Target.validate(fighter, &timeTracker)
 					wg.Add(1)
 					go initiative(fighter, i, wg)
 				}
