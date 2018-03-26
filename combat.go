@@ -37,6 +37,52 @@ type plotXY struct {
 	sumY   int
 }
 
+type Faction struct {
+	name    string
+	allies  []string
+	nemesis []string
+}
+
+// Initialize factions
+
+var templars = Faction{
+	name:   "Templars",
+	allies: []string{"Heroes"},
+}
+
+var bloodhawks = Faction{
+	name: "Bloodhawks",
+}
+
+var heroes = Faction{
+	name:   "Heroes",
+	allies: []string{"Templars"},
+}
+
+var factions = []Faction{templars, bloodhawks, heroes}
+
+func checkAllies(c Combatant, t Combatant) bool {
+
+	actingFaction := Faction{}
+
+	for i, f := range factions {
+		if f.name == c.Faction {
+			actingFaction = factions[i]
+		}
+	}
+
+	allies := actingFaction.allies
+
+	for _, ally := range allies {
+		if ally == t.Faction {
+			// potential target is an ally
+			return true
+		}
+	}
+	// target is not an ally
+	return false
+}
+
 // Check to see if the target is out of the fight
 func (c *Combatant) validate(s *Combatant, tm *[]timeStamp) {
 
@@ -77,7 +123,7 @@ func (c *Combatant) selectTarget(battle *Combat) {
 	var potentialTargets []*Combatant
 
 	for _, f := range battle.fighters {
-		if f != c && f.Down != true && c.Faction != f.Faction {
+		if f != c && f.Down != true && c.Faction != f.Faction && !checkAllies(*c, *f) {
 			potentialTargets = append(potentialTargets, f)
 		}
 	}
@@ -109,81 +155,6 @@ func (c *Combatant) attack() {
 	}
 }
 
-func (b *Combat) report(timeTracker []timeStamp) {
-
-	factions := make(map[string]bool)
-
-	for _, fighter := range b.fighters {
-		factions[fighter.Faction] = true
-	}
-
-	// Track starting combatants
-	starting := make(map[string]int)
-
-	for k, _ := range factions {
-		for _, fighter := range b.fighters {
-			if k == fighter.Faction {
-				starting[k] += 1
-			}
-		}
-	}
-
-	// Track combatants at end of battle
-	results := make(map[string]int)
-
-	for k, _ := range factions {
-		for _, fighter := range b.fighters {
-			if k == fighter.Faction && fighter.Down == false {
-				results[k] += 1
-			}
-		}
-	}
-
-	// Print out results
-	for k, v := range starting {
-		fmt.Println(k)
-		fmt.Printf("Starting Force: %d\n", v)
-		fmt.Printf("Standing: %d\n", results[k])
-		fmt.Printf("Losses: %.2f%%\n\n", 100-(float64(results[k])/float64(v))*100)
-	}
-
-	for _, instance := range timeTracker {
-		fmt.Printf("%s is slain by %s at %s\n", instance.fighter.Name,
-			instance.slayer.Name,
-			instance.stamp.Format("3:04PM"))
-	}
-
-	// develop MVP script
-
-	/* Transform timeTracker into plottable Format
-
-		plotData := convertTimeTracker(timeTracker, factions)
-
-		// plotting
-		p, err := plot.New()
-		if err != nil {
-			panic(err)
-		}
-
-		p.Title.Text = "Battle Results"
-		p.X.Label.Text = "Time"
-		p.Y.Label.Text = "Combatants"
-
-		err = plotutil.AddLinePoints(p)
-	}
-
-	func convertTimeTracker(t []timeStamp, f map[string]bool) map[string][]plotXY {
-
-		plotData := make(map[string][]plotXY)
-
-		for k, _ := range f {
-			plotData[k] := []plotXY
-			for _, s := range t {
-				plotData[k] = append(plotData[k], plotXY{faction: k, s.stamp)
-			}
-		} */
-}
-
 func main() {
 
 	fmt.Println("*** THE BATTLE BEGINS ***\n")
@@ -197,13 +168,13 @@ func main() {
 	var timeTracker []timeStamp
 
 	// Initialize combatants
-	hugo := Combatant{Name: "Hugo", Faction: "Bloodhawks", HP: 10, AC: 15, AttackBonus: 3,
+	hugo := Combatant{Name: "Hugo", Faction: "Heroes", HP: 10, AC: 15, AttackBonus: 3,
 		WeaponDamage: 8, DamageBonus: 2, Initiative: 3, Speed: 1.0, Down: false}
 
-	blackthorn := Combatant{Name: "BlackThorn", Faction: "Bloodhawks", HP: 10, AC: 15, AttackBonus: 3,
+	blackthorn := Combatant{Name: "BlackThorn", Faction: "Heroes", HP: 10, AC: 15, AttackBonus: 3,
 		WeaponDamage: 8, DamageBonus: 2, Initiative: 3, Speed: 1.4, Down: false}
 
-	rutger := Combatant{Name: "Rutger", Faction: "Templars", HP: 13, AC: 18, AttackBonus: 4,
+	rutger := Combatant{Name: "Rutger", Faction: "Heroes", HP: 13, AC: 18, AttackBonus: 4,
 		WeaponDamage: 12, DamageBonus: 3, Initiative: 3, Speed: 0.8, Down: false}
 
 	battle := Combat{fighters: []*Combatant{&hugo, &blackthorn, &rutger}, active: true}
@@ -269,6 +240,6 @@ func main() {
 
 	}
 	fmt.Println("FIGHT OVER!\n")
-	battle.report(timeTracker)
+	battle.Report(timeTracker)
 
 }
