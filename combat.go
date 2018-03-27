@@ -32,11 +32,6 @@ type timeStamp struct {
 	stamp   time.Time
 }
 
-type plotXY struct {
-	stampX time.Time
-	sumY   int
-}
-
 type Faction struct {
 	name    string
 	allies  []string
@@ -59,8 +54,14 @@ var heroes = Faction{
 	allies: []string{"Templars"},
 }
 
-var factions = []Faction{templars, bloodhawks, heroes}
+var dragon = Faction{
+	name:   "Dragon",
+	allies: []string{"Bloodhawks"},
+}
 
+var factions = []Faction{templars, bloodhawks, heroes, dragon}
+
+// Combat functions
 func checkAllies(c Combatant, t Combatant) bool {
 
 	actingFaction := Faction{}
@@ -94,20 +95,7 @@ func (c *Combatant) validate(s *Combatant, tm *[]timeStamp) {
 	}
 }
 
-// Roll and sum dice
-func RollDie(max, min, numDice int) int {
-
-	s1 := rand.NewSource(time.Now().UnixNano())
-	r1 := rand.New(s1)
-
-	result := 0
-	for i := 1; i < numDice+1; i++ {
-		result += r1.Intn(max-min) + min
-	}
-	return result
-}
-
-// Insert combatants into qeue based on speed
+// Insert combatants into queue based on speed
 func initiative(c *Combatant, i chan *Combatant, wg *sync.WaitGroup) {
 	defer wg.Done()
 	time.Sleep(time.Duration(1000*c.Speed) * time.Millisecond)
@@ -165,6 +153,7 @@ func main() {
 	// Create WaitGroup
 	wg := new(sync.WaitGroup)
 
+	// initialize reporting tracker for deaths
 	var timeTracker []timeStamp
 
 	// Initialize combatants
@@ -177,8 +166,12 @@ func main() {
 	rutger := Combatant{Name: "Rutger", Faction: "Heroes", HP: 13, AC: 18, AttackBonus: 4,
 		WeaponDamage: 12, DamageBonus: 3, Initiative: 3, Speed: 0.8, Down: false}
 
-	battle := Combat{fighters: []*Combatant{&hugo, &blackthorn, &rutger}, active: true}
+	dragon := Combatant{Name: "Dragon", Faction: "Dragon", HP: 55, AC: 18, AttackBonus: 4,
+		WeaponDamage: 12, DamageBonus: 3, Initiative: 3, Speed: 0.8, Down: false}
 
+	battle := Combat{fighters: []*Combatant{&hugo, &blackthorn, &rutger, &dragon}, active: true}
+
+	// script to populate combat
 	var faction string
 
 	for counter := 0; counter < 100; counter++ {
