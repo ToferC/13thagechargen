@@ -140,6 +140,7 @@ func drawChart(w http.ResponseWriter, r *http.Request, c map[string][]Casualty) 
 }
 
 func serveGraph(c map[string][]Casualty) {
+	fmt.Println("Starting results graph server at http://localhost:8080")
 	http.HandleFunc("/favico.ico", func(w http.ResponseWriter, r *http.Request) {
 		w.Write([]byte{})
 	})
