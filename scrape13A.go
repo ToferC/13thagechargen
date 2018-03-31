@@ -1,13 +1,9 @@
 package main
 
 import (
-	"bufio"
 	"fmt"
 	"log"
-	"os"
-	"strings"
 
-	"github.com/PuerkitoBio/goquery"
 	"github.com/gocolly/colly"
 )
 
@@ -37,6 +33,7 @@ func stringInSlice(a string, list []string) bool {
 	return false
 }
 
+/*
 // StringToLines - Convert HTML table strings into text lines
 func StringToLines(s string) []string {
 	var lines []string
@@ -93,7 +90,7 @@ func processTable(tableObject *goquery.Selection) {
 	})
 	fmt.Println(classMap)
 }
-
+*/
 func GetAbilities(class string) map[string]string {
 
 	// Initialize Colly Collector
@@ -144,19 +141,20 @@ func GetAbilities(class string) map[string]string {
 	})
 
 	// Test scraping function - class abilities table
-	c.OnHTML("body", func(e *colly.HTMLElement) {
+	/*
+		c.OnHTML("body", func(e *colly.HTMLElement) {
 
-		//tableRows := make(map[int][]string)
-		goquerySelection := e.DOM
+			//tableRows := make(map[int][]string)
+			goquerySelection := e.DOM
 
-		// Pull the class progression table
-		tableObject := goquerySelection.Find("table").Eq(3)
+			// Pull the class progression table
+			tableObject := goquerySelection.Find("table").Eq(3)
 
-		fmt.Println("Found Level Progression Table")
+			fmt.Println("Found Level Progression Table")
 
-		processTable(tableObject)
+			processTable(tableObject)
 
-	})
+		}) */
 
 	c.OnScraped(func(r *colly.Response) {
 		fmt.Println("Finished", r.Request.URL)

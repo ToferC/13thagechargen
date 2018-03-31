@@ -7,12 +7,10 @@ import (
 	"html/template"
 	"io/ioutil"
 	"log"
-	"math/rand"
 	"net/http"
 	"os"
 	"path/filepath"
 	"strings"
-	"time"
 )
 
 // Character Object
@@ -23,19 +21,6 @@ type Character struct {
 	Level int            "json:'level'"
 	Race  string         "json:'race'"
 	HP    int            "json:'hp'"
-}
-
-// Roll dice
-func RollDie(max, min, numDice int) int {
-
-	s1 := rand.NewSource(time.Now().UnixNano())
-	r1 := rand.New(s1)
-
-	result := 0
-	for i := 1; i < numDice+1; i++ {
-		result += r1.Intn(max-min) + min
-	}
-	return result
 }
 
 // Determine stat modifiers
@@ -115,9 +100,7 @@ func indexHandler(w http.ResponseWriter, r *http.Request) {
 		charNames = append(charNames, s[0])
 	}
 
-	t, _ := template.ParseFiles("templates/index.html")
-	t.Execute(w, charNames)
-
+	render(w, "templates/index.html", charNames)
 }
 
 func viewHandler(w http.ResponseWriter, r *http.Request) {
@@ -127,8 +110,7 @@ func viewHandler(w http.ResponseWriter, r *http.Request) {
 	path := "./characters/" + name + ".json"
 	c := openCharacter(path)
 
-	t, _ := template.ParseFiles("templates/character.html")
-	t.Execute(w, c)
+	render(w, "templates/character.html", c)
 }
 
 func newCharHandler(w http.ResponseWriter, r *http.Request) {
@@ -160,14 +142,20 @@ func newCharHandler(w http.ResponseWriter, r *http.Request) {
 
 	c.HP = RollDie(10, 1, 1) + conMod
 
-	printCharacter(c)
+	if r.Method == "GET" {
 
-	path := "./characters/" + c.Name + ".json"
+		render(w, "templates/new_char.html", c)
 
-	writeFile(path, c)
+	} else {
 
-	t, _ := template.ParseFiles("templates/new_char.html")
-	t.Execute(w, c)
+		c.Name = r.FormValue("name")
+		c.Class = r.FormValue("class")
+		c.Race = r.FormValue("race")
+
+		fmt.Println(c)
+		c.save()
+		http.Redirect(w, r, "view/"+c.Name, http.StatusFound)
+	}
 }
 
 func main() {
@@ -231,15 +219,16 @@ func createChar() {
 
 	c.HP = RollDie(10, 1, 1) + conMod
 
+	c.save()
+}
+
+func (c Character) save() {
+
 	printCharacter(c)
 
 	path := "./characters/" + c.Name + ".json"
 
 	writeFile(path, c)
-
-	d := openCharacter(path)
-
-	printCharacter(d)
 }
 
 func writeFile(path string, c Character) {
@@ -257,6 +246,17 @@ func writeFile(path string, c Character) {
 
 	characterJson, _ := json.Marshal(c)
 	err = ioutil.WriteFile(path, characterJson, 0644)
+}
+
+// Render HTML templates
+func render(w http.ResponseWriter, filename string, data interface{}) {
+	tmpl, err := template.ParseFiles(filename)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+	}
+	if err := tmpl.Execute(w, data); err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+	}
 }
 
 func openCharacter(path string) Character {
