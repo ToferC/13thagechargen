@@ -10,6 +10,7 @@ import (
 	"net/http"
 	"os"
 	"path/filepath"
+	"strconv"
 	"strings"
 )
 
@@ -123,38 +124,52 @@ func newCharHandler(w http.ResponseWriter, r *http.Request) {
 	c := Character{Name: name, Stats: m, Class: "",
 		Level: 1, Race: "", HP: 0}
 
-	c.Stats["STR"] = RollDie(6, 1, 3)
-	c.Stats["DEX"] = RollDie(6, 1, 3)
-	c.Stats["CON"] = RollDie(6, 1, 3)
-	c.Stats["INT"] = RollDie(6, 1, 3)
-	c.Stats["WIS"] = RollDie(6, 1, 3)
-	c.Stats["CHA"] = RollDie(6, 1, 3)
-
-	c.Class = "Fighter"
-	c.Race = "Elf"
-
-	GetAbilities(c.Class)
-
-	var conMod int
-
-	// Figure out stat mod
-	conMod = FindMod(c.Stats["CON"])
-
-	c.HP = RollDie(10, 1, 1) + conMod
-
 	if r.Method == "GET" {
+
+		c.Stats["STR"] = RollDie(6, 1, 3)
+		c.Stats["DEX"] = RollDie(6, 1, 3)
+		c.Stats["CON"] = RollDie(6, 1, 3)
+		c.Stats["INT"] = RollDie(6, 1, 3)
+		c.Stats["WIS"] = RollDie(6, 1, 3)
+		c.Stats["CHA"] = RollDie(6, 1, 3)
+
+		c.Class = "Fighter"
+		c.Race = "Elf"
+
+		var conMod int
+
+		// Figure out stat mod
+		conMod = FindMod(c.Stats["CON"])
+
+		c.HP = RollDie(10, 1, 1) + conMod
 
 		render(w, "templates/new_char.html", c)
 
 	} else {
 
+		c := Character{}
+
+		m := make(map[string]int)
+
+		c.Stats = m
+
 		c.Name = r.FormValue("name")
 		c.Class = r.FormValue("class")
 		c.Race = r.FormValue("race")
+		c.Level, _ = strconv.Atoi(r.FormValue("level"))
+		c.HP, _ = strconv.Atoi(r.FormValue("hp"))
+		c.Stats["STR"], _ = strconv.Atoi(r.FormValue("STR"))
+		c.Stats["DEX"], _ = strconv.Atoi(r.FormValue("DEX"))
+		c.Stats["CON"], _ = strconv.Atoi(r.FormValue("CON"))
+		c.Stats["INT"], _ = strconv.Atoi(r.FormValue("INT"))
+		c.Stats["WIS"], _ = strconv.Atoi(r.FormValue("WIS"))
+		c.Stats["CHA"], _ = strconv.Atoi(r.FormValue("CHA"))
+
+		GetAbilities(c.Class)
 
 		fmt.Println(c)
 		c.save()
-		http.Redirect(w, r, "view/"+c.Name, http.StatusFound)
+		http.Redirect(w, r, "/view/"+c.Name, http.StatusSeeOther)
 	}
 }
 

@@ -1,8 +1,8 @@
 package main
 
 import (
-  "math/rand"
-  "time"
+	"math/rand"
+	"time"
 )
 
 // Roll and sum dice

@@ -13,7 +13,8 @@ func RollDie(max, min, numDice int) int {
 
 	result := 0
 	for i := 1; i < numDice+1; i++ {
-		result += r1.Intn(max-min) + min
+		roll := r1.Intn(max+1-min) + min
+		result += roll
 	}
 	return result
 }
