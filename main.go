@@ -190,6 +190,19 @@ func main() {
 		fmt.Println("No character created.")
 	}
 
+	// Start battle?
+	createReader = bufio.NewReader(os.Stdin)
+	fmt.Print("Start a battle (Y/N): ")
+	startBattle, _ := createReader.ReadString('\n')
+
+	battleOrNot := strings.Trim(startBattle, " \n")
+
+	if battleOrNot == "Y" {
+		Battle()
+	} else {
+		fmt.Println("No fighting today.")
+	}
+
 	fmt.Println("Starting Web server at port 8080")
 	http.HandleFunc("/", indexHandler)
 	http.HandleFunc("/view/", viewHandler)

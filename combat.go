@@ -144,9 +144,9 @@ func (c *Combatant) attack() {
 	}
 }
 
-func main() {
+func Battle() {
 
-	fmt.Println("*** THE BATTLE BEGINS ***\n")
+	fmt.Println("*** THE BATTLE BEGINS ***")
 
 	// Create initiative channel
 	i := make(chan *Combatant)
@@ -233,7 +233,7 @@ func main() {
 		}
 
 	}
-	fmt.Println("FIGHT OVER!\n")
+	fmt.Println("FIGHT OVER!")
 	battle.Report(timeTracker)
 
 }
