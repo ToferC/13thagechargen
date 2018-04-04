@@ -16,13 +16,16 @@ import (
 
 // Character Object
 type Character struct {
-	Name  string         "json:'name'"
-	Stats map[string]int "json:'stats'"
-	Class string         "json:'class'"
-	Level int            "json:'level'"
-	Race  string         "json:'race'"
-	HP    int            "json:'hp'"
+	Name      string            "json:'name'"
+	Stats     map[string]int    "json:'stats'"
+	Class     string            "json:'class'"
+	Level     int               "json:'level'"
+	Race      string            "json:'race'"
+	HP        int               "json:'hp'"
+	Abilities map[string]string "json:'abilities'"
 }
+
+const baseTemplate = "templates/layout.html"
 
 // Determine stat modifiers
 func FindMod(stat int) int {
@@ -165,7 +168,7 @@ func newCharHandler(w http.ResponseWriter, r *http.Request) {
 		c.Stats["WIS"], _ = strconv.Atoi(r.FormValue("WIS"))
 		c.Stats["CHA"], _ = strconv.Atoi(r.FormValue("CHA"))
 
-		GetAbilities(c.Class)
+		c.Abilities = GetAbilities(c.Class)
 
 		fmt.Println(c)
 		c.save()
@@ -265,11 +268,12 @@ func writeFile(path string, c Character) {
 
 // Render HTML templates
 func render(w http.ResponseWriter, filename string, data interface{}) {
-	tmpl, err := template.ParseFiles(filename)
-	if err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
-	}
-	if err := tmpl.Execute(w, data); err != nil {
+
+	tmpl := make(map[string]*template.Template)
+
+	tmpl[filename] = template.Must(template.ParseFiles(filename, baseTemplate))
+
+	if err := tmpl[filename].ExecuteTemplate(w, "base", data); err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 	}
 }

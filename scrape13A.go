@@ -118,7 +118,8 @@ func GetAbilities(class string) map[string]string {
 
 	// Omit non-relevant H4 nodes
 	omit := []string{
-		"Gold Pieces", "Navigation", " Latest products in the Open Gaming Store"}
+		"Gold Pieces", "Navigation", " Latest products in the Open Gaming Store",
+		"OGN Blog!", "Armor"}
 
 	abilities := make(map[string]string)
 

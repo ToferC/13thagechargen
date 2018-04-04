@@ -46,7 +46,8 @@ var templars = Faction{
 }
 
 var bloodhawks = Faction{
-	name: "Bloodhawks",
+	name:   "Bloodhawks",
+	allies: []string{"Dragon"},
 }
 
 var heroes = Faction{
@@ -167,7 +168,7 @@ func main() {
 		WeaponDamage: 12, DamageBonus: 3, Initiative: 3, Speed: 0.8, Down: false}
 
 	dragon := Combatant{Name: "Dragon", Faction: "Dragon", HP: 55, AC: 18, AttackBonus: 4,
-		WeaponDamage: 12, DamageBonus: 3, Initiative: 3, Speed: 0.8, Down: false}
+		WeaponDamage: 12, DamageBonus: 3, Initiative: 3, Speed: 0.6, Down: false}
 
 	battle := Combat{fighters: []*Combatant{&hugo, &blackthorn, &rutger, &dragon}, active: true}
 

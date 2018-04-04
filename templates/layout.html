@@ -1,3 +1,4 @@
+{{define "base"}}
 <!DOCTYPE html>
 <html lang="en">
   <head>
@@ -8,6 +9,13 @@
     <link rel="icon" href="../../favicon.ico">
 
     <title>Characters</title>
+    <style type="text/css">
+      form {
+        display: inline-block;
+        width: 100px;
+        margin: 0 auto;
+      }
+    </style>
   </head>
 
   <body>
@@ -47,7 +55,7 @@
 
     <div class="container">
 
-      {{template "body"}}
+      {{template "content" .}}
 
     </div><!-- /.container -->
 
@@ -65,3 +73,4 @@
   <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js" integrity="sha384-Tc5IQib027qvyjSMfHjOMaLkfuWVxZxUPnCJA7l2mCWNIpG9mGCD8wGNIcPD7Txa" crossorigin="anonymous"></script>
   </body>
 </html>
+{{end}}
